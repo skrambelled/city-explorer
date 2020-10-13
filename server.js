@@ -8,6 +8,7 @@ const superagent = require('superagent');
 const cors = require('cors');
 
 const PORT = process.env.PORT;
+const GEOCODE_API_KEY = process.env.GEOCODE_API_KEY;
 
 app.get('/', (req, res) => {
   res.send('hello world');
@@ -17,9 +18,9 @@ app.use(cors());
 
 function Location(city, geoData) {
   this.search_query = city;
-  this.latitude = geoData[0].lat;
-  this.longitude = geoData[0].lon;
-  this.formatted_query = geoData[0].display_name;
+  this.latitude = geoData.lat;
+  this.longitude = geoData.lon;
+  this.formatted_query = geoData.display_name;
 }
 
 function sendError(res, code, message) {
@@ -31,16 +32,18 @@ function sendError(res, code, message) {
 
 app.get('/location', (req, res) => {
   try {
-
+    const city = req.query.city;
+    console.log('/location city', city);
     const url = `https://us1.locationiq.com/v1/search.php?key=${GEOCODE_API_KEY}&q=${city}&format=json&limit=1`;
 
     superagent.get(url)
-      .then(data => console.log(data));
+      .then(data => {
+        const geoData = data.body[0];
+        const locationData = new Location(city, geoData);
+        res.json(locationData);
+      })
+      .catch(error => sendError(res, 500, error));
 
-
-    const city = req.query.city;
-    const locationData = new Location(city, geoData);
-    res.json(locationData);
   } catch (error) {
     sendError(res, 500, 'Location error');
   }
