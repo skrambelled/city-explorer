@@ -28,12 +28,26 @@ app.get('/location', (req, res) => {
     const locationData = new Location(city, geoData);
     res.json(locationData);
   } catch (error) {
-    res.status(500).send('Error');
+    res.status(500).send('Location Error');
   }
 });
 
-app.get('/weather', (req, res) => {
+function Weather(day) {
+  this.forecast = day.weather.description;
+  this.time = day.valid_date;
+}
 
+app.get('/weather', (req, res) => {
+  try {
+    let days = [];
+    const weather = require('./data/weather.json');
+    weather.data.forEach(day => {
+      days.push(new Weather(day));
+    });
+    res.send(days);
+  } catch (error) {
+    res.status(500).send('Weather Error');
+  }
 });
 
 // default 404 error handling
