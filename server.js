@@ -21,6 +21,13 @@ function Location(city, geoData) {
   this.formatted_query = geoData[0].display_name;
 }
 
+function sendError(res, code, message) {
+  res.json({
+    status: code,
+    resonseText: message
+  })
+}
+
 app.get('/location', (req, res) => {
   try {
     const geoData = require('./data/location.json');
@@ -28,7 +35,7 @@ app.get('/location', (req, res) => {
     const locationData = new Location(city, geoData);
     res.json(locationData);
   } catch (error) {
-    res.status(500).send('Location Error');
+    sendError(res, 500, 'Location error');
   }
 });
 
@@ -46,13 +53,13 @@ app.get('/weather', (req, res) => {
     });
     res.send(days);
   } catch (error) {
-    res.status(500).send('Weather Error');
+    sendError(res, 500, 'Weather Error');
   }
 });
 
 // default 404 error handling
 app.get('*', (req, res) => {
-  res.status(404).send('Page not found.');
+  sendError(res, 404, 'Page not found.');
 });
 
 app.listen(PORT, () => {
