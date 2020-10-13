@@ -9,7 +9,7 @@ const app = express();
 
 const PORT = process.env.PORT;
 
-app.use(cors);
+app.use(cors());
 
 app.get('/', (req, res) => {
   res.send('hello world');
@@ -21,5 +21,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server listening on ${PORT}`);
+  console.log(`Server listening on port: ${PORT}`);
 });

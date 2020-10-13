@@ -16,7 +16,7 @@
       "always"
     ],
     "no-console": "off",
-    // "no-undefined": "off",
+    "no-undefined": "off",
     "indent": [
       "error",
       2
