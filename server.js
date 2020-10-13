@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const express = require('express');
 const app = express();
+const superagent = require('superagent');
 const cors = require('cors');
 
 const PORT = process.env.PORT;
@@ -30,7 +31,13 @@ function sendError(res, code, message) {
 
 app.get('/location', (req, res) => {
   try {
-    const geoData = require('./data/location.json');
+
+    const url = `https://us1.locationiq.com/v1/search.php?key=${GEOCODE_API_KEY}&q=${city}&format=json&limit=1`;
+
+    superagent.get(url)
+      .then(data => console.log(data));
+
+
     const city = req.query.city;
     const locationData = new Location(city, geoData);
     res.json(locationData);
