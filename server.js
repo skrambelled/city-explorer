@@ -46,10 +46,9 @@ function Weather(day) {
 
 app.get('/weather', (req, res) => {
   try {
-    let days = [];
     const weather = require('./data/weather.json');
-    weather.data.forEach(day => {
-      days.push(new Weather(day));
+    let days = weather.data.map(day => {
+      return new Weather(day);
     });
     res.send(days);
   } catch (error) {
