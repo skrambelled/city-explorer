@@ -10,6 +10,7 @@ const cors = require('cors');
 const PORT = process.env.PORT;
 const GEOCODE_API_KEY = process.env.GEOCODE_API_KEY;
 const WEATHERBIT_API_KEY = process.env.WEATHERBIT_API_KEY;
+const TRAIL_API_KEY = process.env.TRAIL_API_KEY;
 
 app.get('/', (req, res) => {
   res.send('hello world');
@@ -34,7 +35,6 @@ function sendError(res, code, message) {
 app.get('/location', (req, res) => {
   try {
     const city = req.query.city;
-    console.log('/location city', city);
     const url = `https://us1.locationiq.com/v1/search.php?key=${GEOCODE_API_KEY}&q=${city}&format=json&limit=1`;
 
     superagent.get(url)
@@ -59,7 +59,7 @@ app.get('/weather', (req, res) => {
   try {
     const lat = req.query.latitude;
     const lon = req.query.longitude;
-    const url = `http://api.weatherbit.io/v2.0/forecast/daily?key=${WEATHERBIT_API_KEY}&lat=${lat}&lon=${lon}&days=8`
+    const url = `https://api.weatherbit.io/v2.0/forecast/daily?key=${WEATHERBIT_API_KEY}&lat=${lat}&lon=${lon}&days=8`
 
     superagent.get(url)
       .then(data => {
@@ -70,6 +70,39 @@ app.get('/weather', (req, res) => {
       .catch(error => sendError(res, 500, error));
   } catch (error) {
     sendError(res, 500, 'Weather Error');
+  }
+});
+
+function Trail(trail) {
+  this.name = trail.name;
+  this.location = trail.location;
+  this.length = trail.length;
+  this.stars = trail.stars;
+  this.star_votes = trail.starVotes;
+  this.summary = trail.summary;
+  this.trail_url = trail.url;
+  this.conditions = trail.conditionStatus;
+  this.condition_date = trail.conditionDate.split(' ')[0];
+  this.condition_time = trail.conditionDate.split(' ')[1];
+}
+
+app.get('/trails', (req, res) => {
+  try {
+    const lat = req.query.latitude;
+    const lon = req.query.longitude;
+
+    const url = `https://hikingproject.com/data/get-trails?key=${TRAIL_API_KEY}&lat=${lat}&lon=${lon}&maxDistance=200`;
+
+    return superagent.get(url)
+      .then(data => {
+        const trails = data.body.trails;
+        let trailData = trails.map(trail => new Trail(trail));
+        res.send(trailData);
+      })
+      .catch(error => sendError(res, 500, error));
+
+  } catch (error) {
+    sendError(res, 500, 'Trail Error');
   }
 });
 
