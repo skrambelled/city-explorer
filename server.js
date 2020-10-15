@@ -6,6 +6,9 @@ const express = require('express');
 const app = express();
 const superagent = require('superagent');
 const cors = require('cors');
+const pg = require('pg');
+const { response } = require('express');
+app.use(cors());
 
 const PORT = process.env.PORT;
 const GEOCODE_API_KEY = process.env.GEOCODE_API_KEY;
@@ -15,8 +18,6 @@ const TRAIL_API_KEY = process.env.TRAIL_API_KEY;
 app.get('/', (req, res) => {
   res.send('hello world');
 });
-
-app.use(cors());
 
 function Location(city, geoData) {
   this.search_query = city;
@@ -29,21 +30,41 @@ function sendError(res, code, message) {
   res.json({
     status: code,
     resonseText: message
-  })
+  });
 }
 
 app.get('/location', (req, res) => {
   try {
     const city = req.query.city;
-    const url = `https://us1.locationiq.com/v1/search.php?key=${GEOCODE_API_KEY}&q=${city}&format=json&limit=1`;
 
-    superagent.get(url)
-      .then(data => {
-        const geoData = data.body[0];
-        const locationData = new Location(city, geoData);
-        res.json(locationData);
+    let sql = `SELECT * FROM locations WHERE search_query='${city}'`;
+
+    client.query(sql)
+      .then(results => {
+        if (results.rows.length) {
+          console.log('returned results from db');
+          res.status(200).send(results.rows[0]);
+        } else {
+          const url = `https://us1.locationiq.com/v1/search.php?key=${GEOCODE_API_KEY}&q=${city}&format=json&limit=1`;
+
+          superagent.get(url)
+            .then(data => {
+              const geoData = data.body[0];
+              const locationData = new Location(city, geoData);
+
+              let sql_add = 'INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4);';
+
+              let vals = [locationData.search_query, locationData.formatted_query, locationData.latitude, locationData.longitude];
+              client.query(sql_add, vals)
+                .then(() => {
+                  res.json(locationData);
+                });
+            })
+            .catch(error => sendError(res, 500, error));
+        }
       })
-      .catch(error => sendError(res, 500, error));
+      .catch(err => sendError(res, 500, err));
+
 
   } catch (error) {
     sendError(res, 500, 'Location error');
@@ -93,7 +114,7 @@ app.get('/trails', (req, res) => {
 
     const url = `https://hikingproject.com/data/get-trails?key=${TRAIL_API_KEY}&lat=${lat}&lon=${lon}&maxDistance=200`;
 
-    return superagent.get(url)
+    superagent.get(url)
       .then(data => {
         const trails = data.body.trails;
         let trailData = trails.map(trail => new Trail(trail));
@@ -111,6 +132,20 @@ app.get('*', (req, res) => {
   sendError(res, 404, 'Page not found.');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on port: ${PORT}`);
+app.get('/add', (req, res) => {
+
 });
+
+// connect to db
+const client = new pg.Client(process.env.DATABASE_URL);
+
+client.connect()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server listening on port: ${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.error('db connection error', err);
+  });
+
