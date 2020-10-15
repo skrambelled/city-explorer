@@ -1,19 +1,18 @@
 # City Explorer API
 
 **Author**: Mark Bell
-**Version**: 1.0.2
+
+**Version**: 1.0.5
 
 ## Overview
 
-This is an API for exploring areas.
-
-You will be able to use it to search for cities by name, and get some details and the forecast for that area.
-
-## Getting Started
+This is an API for exploring areas near you or around the states. It has a weather forecast, and a hiking trail suggestion list based on city names.
 
 ## Architecture
 
-Built using node.js and express server.
+Built using node.js, express server, postgres
+
+[Deployed on heroku](https://skrambelled-city-explorer.herokuapp.com/)
 
 ## Changelog
 
@@ -22,9 +21,15 @@ Date | Version | Notes
 2020.10.12 | 1.0.0 | Deployed to Heroku
 2020.10.12 | 1.0.1 | Added Lynnwood, WA details
 2020.10.12 | 1.0.2 | Added weather functionality
+2020.10.13 | 1.0.3 | Added API support for locationiq.com
+2020.10.13 | 1.0.4 | Added API support for weatherbit.io
+2020.10.13 | 1.0.5 | Added API support for hikingproject.com
+2020.10.14 | 1.0.6 | Added a DB support
 
 ## Credits
 
 * Mark Bell (author)
 * Seth McFeeters (reviewer)
+* Robert Radford (reviewer)
+* Tahmina Ringer (much help with db setup!)
 * Brian Nations (instructor)
