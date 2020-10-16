@@ -7,13 +7,15 @@ const app = express();
 const superagent = require('superagent');
 const cors = require('cors');
 const pg = require('pg');
-const { response } = require('express');
-app.use(cors());
 
 const PORT = process.env.PORT;
 const GEOCODE_API_KEY = process.env.GEOCODE_API_KEY;
 const WEATHERBIT_API_KEY = process.env.WEATHERBIT_API_KEY;
 const TRAIL_API_KEY = process.env.TRAIL_API_KEY;
+const MOVIE_API_KEY = process.env.MOVIE_API_KEY;
+const YELP_API_KEY = process.env.YELP_API_KEY;
+
+app.use(cors());
 
 app.get('/', (req, res) => {
   res.send('hello world');
@@ -35,6 +37,8 @@ function sendError(res, code, message) {
 
 app.get('/location', (req, res) => {
   try {
+    console.log('location query', req.query);
+
     const city = req.query.city;
 
     let sql = `SELECT * FROM locations WHERE search_query='${city}'`;
@@ -78,6 +82,8 @@ function Weather(day) {
 
 app.get('/weather', (req, res) => {
   try {
+    console.log('weather query', req.query);
+
     const lat = req.query.latitude;
     const lon = req.query.longitude;
     const url = `https://api.weatherbit.io/v2.0/forecast/daily?key=${WEATHERBIT_API_KEY}&lat=${lat}&lon=${lon}&days=8`
@@ -109,6 +115,8 @@ function Trail(trail) {
 
 app.get('/trails', (req, res) => {
   try {
+    console.log('trails query', req.query);
+
     const lat = req.query.latitude;
     const lon = req.query.longitude;
 
@@ -127,13 +135,71 @@ app.get('/trails', (req, res) => {
   }
 });
 
+function Movie(movie) {
+  this.title = movie.title;
+  this.overview = movie.overview;
+  this.average_votes = movie.vote_average;
+  this.total_votes = movie.vote_count;
+  this.image_url = `https://image.tmdb.org/t/p/w600_and_h900_bestv2/${movie.poster_path}`;
+  this.popularity = movie.popularity;
+  this.released_on = movie.release_date;
+}
+
+app.get('/movies', (req, res) => {
+  try {
+    console.log('movie query', req.query);
+    const city = req.query.search_query;
+    const url = `https://api.themoviedb.org/3/search/movie?api_key=${MOVIE_API_KEY}&query=${city}`;
+
+    superagent.get(url)
+      .then(data => {
+        const movies = data.body.results.map(movie => new Movie(movie));
+        res.status(200).send(movies);
+      })
+      .catch(error => sendError(res, 500, error));
+
+  } catch (error) {
+    sendError(res, 500, 'Movie Error');
+  }
+});
+
+function Yelp(yelp) {
+  this.name = yelp.name;
+  this.image_url = yelp.image_url;
+  this.price = yelp.price;
+  this.rating = yelp.rating;
+  this.url = yelp.url;
+}
+
+app.get('/yelp', (req, res) => {
+  // try {
+  console.log('yelp query', req.query);
+
+  const page = req.query.page;
+  const lat = req.query.latitude;
+  const lon = req.query.longitude;
+  const url = `https://api.yelp.com/v3/businesses/search?latitude=${lat}&longitude=${lon}`;
+  console.log(url);
+
+  superagent.get(url)
+    .set({ 'Authorization': `Bearer ${YELP_API_KEY}` })
+    .then(data => {
+      console.log(data.body);
+      const yelps = data.body.businesses.map(yelp => new Yelp(yelp));
+      const start = 5 * (page - 1);
+      const showing = yelps.splice(start, 5);
+      res.status(200).send(showing);
+    })
+    .catch(error => sendError(res, 500, error));
+
+  // } catch (error) {
+  //   sendError(res, 500, 'Yelp Error');
+  // }
+});
+
 // default 404 error handling
 app.get('*', (req, res) => {
   sendError(res, 404, 'Page not found.');
-});
-
-app.get('/add', (req, res) => {
-
 });
 
 // connect to db
