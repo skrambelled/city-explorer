@@ -25,6 +25,7 @@ Date | Version | Notes
 2020.10.13 | 1.0.4 | Added API support for weatherbit.io
 2020.10.13 | 1.0.5 | Added API support for hikingproject.com
 2020.10.14 | 1.0.6 | Added a DB support
+2020.10.17 | 1.0.7 | Added yelp w/ pagination (5 results at a time) and tmdb support
 
 ## Credits
 
@@ -32,4 +33,6 @@ Date | Version | Notes
 * Seth McFeeters (reviewer)
 * Robert Radford (reviewer)
 * Tahmina Ringer (much help with db setup!)
+* Will Matchoffo (reviewer and debugger)
+* Chance Harmon (reviewer and debugger)
 * Brian Nations (instructor)

@@ -172,29 +172,29 @@ function Yelp(yelp) {
 }
 
 app.get('/yelp', (req, res) => {
-  // try {
-  console.log('yelp query', req.query);
+  try {
+    console.log('yelp query', req.query);
 
-  const page = req.query.page;
-  const lat = req.query.latitude;
-  const lon = req.query.longitude;
-  const url = `https://api.yelp.com/v3/businesses/search?latitude=${lat}&longitude=${lon}`;
-  console.log(url);
+    const page = req.query.page;
+    const lat = req.query.latitude;
+    const lon = req.query.longitude;
+    const url = `https://api.yelp.com/v3/businesses/search?latitude=${lat}&longitude=${lon}&page=${page}`;
+    console.log(url);
 
-  superagent.get(url)
-    .set({ 'Authorization': `Bearer ${YELP_API_KEY}` })
-    .then(data => {
-      console.log(data.body);
-      const yelps = data.body.businesses.map(yelp => new Yelp(yelp));
-      const start = 5 * (page - 1);
-      const showing = yelps.splice(start, 5);
-      res.status(200).send(showing);
-    })
-    .catch(error => sendError(res, 500, error));
+    superagent.get(url)
+      .set({ 'Authorization': `Bearer ${YELP_API_KEY}` })
+      .then(data => {
+        console.log(data.body);
+        const yelps = data.body.businesses.map(yelp => new Yelp(yelp));
+        const start = 5 * (page - 1);
+        const showing = yelps.splice(start, 5);
+        res.status(200).send(showing);
+      })
+      .catch(error => sendError(res, 500, error));
 
-  // } catch (error) {
-  //   sendError(res, 500, 'Yelp Error');
-  // }
+  } catch (error) {
+    sendError(res, 500, 'Yelp Error');
+  }
 });
 
 // default 404 error handling
